@@ -3,57 +3,36 @@ import pandas as pd
 import joblib
 
 model = joblib.load("flight_price_model_small.pkl")
+encoders = joblib.load("encoders.pkl")
 
-st.title("Flight Price Prediction")
+st.title("✈️ Flight Price Prediction")
 
-airline = st.number_input("airline", step=1)
-ch_code = st.number_input("ch_code", step=1)
-num_code = st.number_input("num_code", step=1)
-dep_time = st.number_input("dep_time", step=1)
-from_city = st.number_input("from", step=1)
-time_taken = st.number_input("time_taken")
-stop = st.number_input("stop", step=1)
-arr_time = st.number_input("arr_time", step=1)
-to = st.number_input("to", step=1)
+input_data = {}
 
-day = st.number_input("day", 1, 31)
-month = st.number_input("month", 1, 12)
-year = st.number_input("year", 2024, 2030)
+columns = [
+    'airline', 'ch_code', 'num_code', 'dep_time', 'from',
+    'time_taken', 'stop', 'arr_time', 'to', 'day', 'month', 'year'
+]
 
-if st.button("Predict"):
+for col in columns:
+    if col in encoders:
+        options = list(encoders[col].classes_)
+        value = st.selectbox(col, options)
+        input_data[col] = encoders[col].transform([value])[0]
 
-    data = pd.DataFrame([[
+    elif col == "day":
+        input_data[col] = st.number_input("day", min_value=1, max_value=31, value=11)
 
-        airline,
-        ch_code,
-        num_code,
-        dep_time,
-        from_city,
-        time_taken,
-        stop,
-        arr_time,
-        to,
-        day,
-        month,
-        year
+    elif col == "month":
+        input_data[col] = st.number_input("month", min_value=1, max_value=12, value=2)
 
-    ]], columns=[
+    elif col == "year":
+        input_data[col] = st.number_input("year", min_value=2020, max_value=2030, value=2022)
 
-        'airline',
-        'ch_code',
-        'num_code',
-        'dep_time',
-        'from',
-        'time_taken',
-        'stop',
-        'arr_time',
-        'to',
-        'day',
-        'month',
-        'year'
+    else:
+        input_data[col] = st.number_input(col, value=0)
 
-    ])
-
-    prediction = model.predict(data)
-
-    st.success(f"Predicted Price: ₹ {prediction[0]:,.2f}")
+if st.button("Predict Price"):
+    input_df = pd.DataFrame([input_data], columns=columns)
+    prediction = model.predict(input_df)[0]
+    st.success(f"Predicted Flight Price: ₹ {prediction:,.2f}")
