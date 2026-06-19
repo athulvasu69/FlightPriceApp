@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-model = joblib.load("flight_price_model.pkl")
+model = joblib.load("flight_price_model_small.pkl")
 
 st.title("Flight Price Prediction")
 
